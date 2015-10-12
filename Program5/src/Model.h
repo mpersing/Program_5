@@ -14,9 +14,9 @@ public:
     void init()
     {
 		objLoader loader;
-		//loader.load("resources/cube.obj");
+		loader.load("resources/cube.obj");
 		//loader.load("resources/sphere.obj");
-		loader.load("resources/teapot.obj");
+		//loader.load("resources/teapot.obj");
         //loader.load("resources/test.obj");
 		
 		for(size_t i=0; i<loader.vertexCount; i++) {
@@ -41,12 +41,41 @@ public:
 
         
         //TODO compute the vertex normals by averaging the face normals
-
-        
-        for(size_t i=0; i<positions.size(); i++) {
-            colors.push_back( 1 );
-            colors.push_back( 1 );
-            colors.push_back( 1 );
+		
+		vector<glm::vec3> vertNormals;
+		vertNormals.resize(loader.vertexCount);
+		for(int i = 0 ; i < vertNormals.size() ; ++i)
+		{
+			vertNormals[i] = glm::vec3(0,0,0);
+		}
+		for(int i = 0 ; i < elements.size() / 3 ; ++i)
+		{
+			glm::vec3 vertices[3];
+			for(int j = 0 ; j < 3 ; ++j)
+			{
+				for(int k = 0 ; k < 3 ; ++k)
+				{
+					vertices[j][k] = positions[ elements[i * 3 + j] * 3 + k];
+				}
+			}
+			glm::vec3 faceNormal = glm::normalize(glm::cross(vertices[1]-vertices[0], vertices[2]-vertices[1]));
+			for(int j = 0 ; j < 3 ; ++j)
+			{
+				vertNormals[elements[i * 3 + j]] += faceNormal;
+			}
+		}
+		for(int i = 0 ; i < vertNormals.size() ; ++i)
+		{
+			vertNormals[i] = glm::normalize(vertNormals[i]);
+			vertNormals[i] = glm::vec3(0.5,0.5,0.5) * (vertNormals[i] + glm::vec3(1, 1, 1));
+		}
+		//compute all face normals
+		//accumulate face normals at vertices
+		//normalize vertex normals
+        for(int i = 0; i<vertNormals.size(); ++i) {
+            colors.push_back(vertNormals[i][0]);
+            colors.push_back(vertNormals[i][1]);
+            colors.push_back(vertNormals[i][2]);
         }
         
         min = computeMinBound();

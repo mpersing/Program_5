@@ -204,8 +204,9 @@ private:
 		shaderProg = ShaderManager::shaderFromFile(&vertPath, &fragPath, 1, 1);
         
         
-        char const * lightPath = "resources/lightPos.vert";
-        lightProg = ShaderManager::shaderFromFile(&lightPath, &fragPath, 1, 1);
+        char const * lightVPath = "resources/lightPos.vert";
+		char const * lightFPath = "resources/lightPos.frag";
+        lightProg = ShaderManager::shaderFromFile(&lightVPath, &lightFPath, 1, 1);
 
 		checkGLError("shader");
 	}
