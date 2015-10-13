@@ -26,7 +26,8 @@ vec4 gouraud()
 	vec4 norm = N*vec4(colorIn * 2 - 1,1);
 	vec4 rotatedLight = C*L*lightPos;
 	vec4 currentPos = M*vec4(pos,1);
-    return normalize(vec4(dot(norm, rotatedLight-currentPos)) * vec4(0.1) * vec4(colorIn,1));  // TODO multiply by inverse of distance
+	vec4 path = rotatedLight - currentPos;
+    return vec4(dot(norm, rotatedLight-currentPos)) * inversesqrt(dot(path,path)) * vec4(colorIn,1);
 }
 
 vec4 phong()
