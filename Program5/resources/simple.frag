@@ -16,6 +16,18 @@ smooth in vec4 norm;
 
 out vec4 fragColor;
 
+float getDiffuse(vec4 n, vec4 l)
+{
+	return clamp(dot(n, l), 0, 1);
+}
+
+float getSpecular(vec4 n, vec4 l, vec4 c, float alpha)
+{
+	vec4 r = reflect(-l, n);
+	float temp = clamp(dot(r,c), 0, 1);
+	return pow(temp, alpha);
+}
+
 void main()
 {
 	if(shadingMode == 0 || shadingMode == 1)
@@ -24,21 +36,14 @@ void main()
 	}
 	else
 	{
-		vec4 path = rotatedLight - currentPos;
-		float diffuse = dot(norm, path) * inversesqrt(dot(path,path));
-		path = normalize(path);
-		if(diffuse < 0)
-			diffuse = 0;
+		vec4 toLight = normalize(rotatedLight-currentPos);
 		vec4 toCamera = normalize(camPos-currentPos);
-		vec4 rvec = normalize(2.0 * dot(path, norm) * norm - path);
-		float spec = dot(rvec,toCamera);
-		if(spec < 0)
-			spec = 0;
-		spec = pow(spec, 10.0f);
-		fragColor = (diffuse + 0.1 + spec) * smoothColor;
-		//fragColor = vec4(dot(toCamera,norm));
-		//fragColor = rvec;
-	}
+		vec4 normalizedNorm = normalize(norm);
 
-    //TODO add gouraud and phong shading support
+		float diffuse = getDiffuse(normalizedNorm, toLight);
+
+		float spec = getSpecular(normalizedNorm, toLight, toCamera, 10.0f);
+
+		fragColor = vec4(0.1 + spec) + (diffuse) * smoothColor;
+	}
 }

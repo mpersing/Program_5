@@ -19,6 +19,18 @@ out vec4 rotatedLight;
 smooth out vec4 currentPos;
 smooth out vec4 norm;
 
+float getDiffuse(vec4 n, vec4 l)
+{
+	return clamp(dot(n, l), 0, 1);
+}
+
+float getSpecular(vec4 n, vec4 l, vec4 c, float alpha)
+{
+	vec4 r = reflect(-l, n);
+	float temp = clamp(dot(r,c), 0, 1);
+	return pow(temp, alpha);
+}
+
 vec4 justColor()
 {
     return vec4(colorIn, 1);
@@ -26,16 +38,14 @@ vec4 justColor()
 
 vec4 gouraud()
 {
-	norm = N*vec4(colorIn * 2 - 1,1);
-	vec4 path = rotatedLight - currentPos;
-	float diffuse = dot(norm, rotatedLight-currentPos) * inversesqrt(dot(path,path));
-	if(diffuse < 0)
-		diffuse = 0;
-	vec4 rvec = 2.0f * dot(camPos, norm) * norm - camPos;
-	float spec = pow(dot(rvec, camPos), 10.0f);
-	if(spec < 0)
-		spec = 0;
-    return spec * vec4(colorIn,1);
+	vec4 toLight = normalize(rotatedLight-currentPos);
+	vec4 toCamera = normalize(camPos-currentPos);
+
+	float diffuse = getDiffuse(norm, toLight);
+
+	float spec = getSpecular(norm, toLight, toCamera, 10.0f);
+
+    return vec4(spec + 0.1) + diffuse * vec4(colorIn,1);
 }
 
 vec4 phong()
@@ -45,13 +55,12 @@ vec4 phong()
 
 void main()
 {
-    //TODO add gouraud and phong shading support
+
 	rotatedLight = L*lightPos;
 	currentPos = mR*mT*vec4(pos,1);
-	norm = normalize(mR*vec4(colorIn * 2 - 1,1));
+	norm = normalize(mR*vec4(colorIn * 2 - 1,0));
     
-	vec4 pos = vec4(pos, 1);
-	gl_Position = P*M*pos;
+	gl_Position = P*C*currentPos;
     
     if(shadingMode == 0)
         smoothColor = justColor();
